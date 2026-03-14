@@ -60,10 +60,10 @@ def plot_elevation_profiles(filenames, cumulative=False):
 		plt.plot(datapoint["x"],datapoint["y"], c=mpl.colormaps["viridis"]((date.toordinal()-min_dataord)/dataord_diff))
 	plt.xlabel("Distance")
 	if cumulative:
-		plt.ylabel("Cumulative elevation (m)")
+		plt.ylabel("Cumulative elevation gained (m)")
 		plt.title("Cumulative Elevation Gain (m)")
 	else:
-		plt.ylabel("Elevation (m)")
+		plt.ylabel("Elevation (m above sea level)")
 		plt.title("Height Profiles")
 
 	ticks = np.linspace(0.0, 1.0, 6)
@@ -72,6 +72,7 @@ def plot_elevation_profiles(filenames, cumulative=False):
 	cbar.set_ticks(ticks)
 	cbar.set_ticklabels([datetime.fromordinal(int(t*dataord_diff+min_dataord)).strftime('%Y-%m-%d') for t in ticks])
 
+	plt.tight_layout()
 	plt.show()
 
 	
