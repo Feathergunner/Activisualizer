@@ -9,8 +9,9 @@ To create plots that aggregate data of multiple activities, to visualize trainin
 ![Visualizing cumulative elevation gain of multiple runs](example_cumele.png "Elevation Gain")
 
 ## Usage
-For scatterplots of heartrate vs. pace (per split): `main.py`.
-Run `python main.py --help` for information on paramters
+For downloading data, and for scatterplots of heartrate vs. pace (per split): `main.py`.
+Run `python main.py --help` for information on paramters.
 
-For elevation profiles and plots of cumulative elevation gains: run `python visualize_full.py`.
+
+For elevation profiles and plots of cumulative elevation gains: run `python visualize_full.py` (see function `plot_elevation_profiles`).
 These functionalities will be included into the main program in the future :)

@@ -42,7 +42,14 @@ def generate_cumelevation_profile_single(filename):
 	}
 	return plotdata
 
-def plot_elevation_profiles(filenames, type, cumulative=False):
+def plot_elevation_profiles(filenames, type:str, cumulative:bool=False):
+	'''
+	filenames: list of json-files (raw data) containing activities
+	type: activity type (only used for plot title)
+	cumulative:
+		if True: plot of cumulative elevation gains is generated
+		if False: plot of elevation profiles is generated
+	'''
 	color_ord = {}
 	data_by_date = {}
 	for filename in filenames:
