@@ -10,7 +10,7 @@ To create plots that aggregate data of multiple activities, to visualize trainin
 
 ## Usage
 For downloading data, and for scatterplots of heartrate vs. pace (per split): `main.py`.
-Run `python main.py --help` for information on paramters.
+Run `python main.py --help` for information on arguments.
 
 
 For elevation profiles and plots of cumulative elevation gains: run `python visualize_full.py` (see function `plot_elevation_profiles`).
