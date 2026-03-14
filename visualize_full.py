@@ -42,7 +42,7 @@ def generate_cumelevation_profile_single(filename):
 	}
 	return plotdata
 
-def plot_elevation_profiles(filenames, cumulative=False):
+def plot_elevation_profiles(filenames, type, cumulative=False):
 	color_ord = {}
 	data_by_date = {}
 	for filename in filenames:
@@ -61,10 +61,10 @@ def plot_elevation_profiles(filenames, cumulative=False):
 	plt.xlabel("Distance")
 	if cumulative:
 		plt.ylabel("Cumulative elevation gained (m)")
-		plt.title("Cumulative Elevation Gain (m)")
+		plt.title("Cumulative Elevation Gain (m) for Activities of type: "+type)
 	else:
 		plt.ylabel("Elevation (m above sea level)")
-		plt.title("Height Profiles")
+		plt.title("Height Profiles for Activities of type: "+type)
 
 	ticks = np.linspace(0.0, 1.0, 6)
 	cbar = plt.colorbar(plt.cm.ScalarMappable(cmap="viridis"), ax=plt.gca(), orientation='horizontal', pad=0.1, aspect=30)
@@ -83,8 +83,8 @@ def test(type="running"):
 			if f.lower().endswith(".json")
 		]
 	#print (input_files)
-	plot_elevation_profiles(input_files, True)
+	plot_elevation_profiles(input_files, type, True)
 
 if __name__ == "__main__":
-	test("running")
+	test("cycling")
 	
