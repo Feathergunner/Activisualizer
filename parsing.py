@@ -33,12 +33,10 @@ def extract_metrics(detail_metrics, key_to_index):
 	return extracted
 	
 
-def get_extracted_data(filename):
+def extract_data(jsondata:dict):
 	# parse raw data:
-	data = load_json(filename)
-	activity_id = data.get("activityId")
-	metric_descriptors = data["metricDescriptors"]
-	detail_metrics = data["activityDetailMetrics"]
+	metric_descriptors = jsondata["metricDescriptors"]
+	detail_metrics = jsondata["activityDetailMetrics"]
 
 	# get metrics and compute splits:
 	key_to_index = get_metric_indices(metric_descriptors, METRICS_OF_INTEREST)
@@ -187,7 +185,7 @@ def format_pace(seconds):
 def process_activity(input_path:str, output_path:str, splitlength:int=1000):
 	data = load_json(input_path)
 	metadata = data["summaryDTO"]
-	extracted_data = get_extracted_data(input_path)
+	extracted_data = extract_data(data)
 	splits = calculate_splits(extracted_data, splitlength)
 
 	result = {
