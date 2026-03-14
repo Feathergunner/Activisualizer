@@ -2,4 +2,4 @@ __pycache__
 full_activity_data
 parsed_activity_data
 *.png
-!running.png
+!example_*.png
