@@ -81,7 +81,6 @@ def visualize_activity_data(datadir:str, min_date:str="01.01.2000", activitytype
 			x_vals_hl.append(speed)
 			y_vals_hl.append(data.get('avgHR'))
 			sizes_hl.append(data.get('totaldist') * MARKERSCALE_DIST+1)
-			
 		
 	print ("Total distance: "+str(int(totaldist))+"m")
 	t_hours = int(totaltime//(3600))
