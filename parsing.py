@@ -185,11 +185,13 @@ def format_pace(seconds):
 
 
 def process_activity(input_path:str, output_path:str, splitlength:int=1000):
+	data = load_json(input_path)
+	metadata = data["summaryDTO"]
 	extracted_data = get_extracted_data(input_path)
 	splits = calculate_splits(extracted_data, splitlength)
 
 	result = {
-		"activityId": activity_id,
+		"activityId": data.get("activityId"),
 		"date": metadata.get("startTimeLocal"),
 		"name": data.get("activityName"),
 		"totaldist": metadata.get("distance"),

@@ -4,6 +4,7 @@
 import os
 import argparse
 import json
+from datetime import datetime
 
 from misc import ensure_dir_exists, parse_full_date, parse_datestring
 from downloading import get_data_from_garmin
@@ -66,9 +67,9 @@ if __name__ == '__main__':
 	
 	# construct directories for data:
 	# ensure output directory exists:
-	dir_downloaded = DIRNAME_FULL_DATA+"\\"+activitytype
+	dir_downloaded = os.path.join(DIRNAME_FULL_DATA, activitytype)
 	ensure_dir_exists(dir_downloaded)
-	dir_parsed = DIRNAME_PARSED_DATA+"\\"+activitytype
+	dir_parsed = os.path.join(DIRNAME_PARSED_DATA, activitytype)
 	ensure_dir_exists(dir_parsed)
 	
 	# download data and store locally in json-files:
@@ -95,15 +96,11 @@ if __name__ == '__main__':
 					raw_data = json.load(f)
 
 				activity_id = raw_data.get("activityId")
-				if not activity_id:
-					print(f"No 'activityId' in file: {filename}")
-					continue
 				
 				date = parse_full_date(raw_data.get("summaryDTO")["startTimeLocal"])
 				if not start_date is None and date < start_date:
-					#print ("skip parsing for activity "+str(activity_id)+": before start_date")
+					# skip parsing for activity: before start_date
 					continue
-
 				output_path = os.path.join(dir_parsed, f"{activity_id}.json")
 	
 				# we do not want to skip parsing, since a custom splitlength always requires re-parsing
@@ -112,7 +109,6 @@ if __name__ == '__main__':
 				#	continue
 	
 				process_activity(input_path, output_path, int(args.splitlength))
-				#print(f"Parsed: {filename} → {activity_id}.json")
 	
 			except Exception as e:
 				print(f"Error while parsing '{filename}': {e}")

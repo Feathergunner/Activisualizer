@@ -3,7 +3,7 @@
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, date
 
 # metrics of interest that is kept after parsing:
 METRICS_OF_INTEREST = ["sumDistance", "sumDuration", "directElevation", "directHeartRate"]
@@ -46,18 +46,19 @@ def float_to_pace_str(pace_float:float):
     seconds = total_seconds % 60
     return f"{minutes}:{seconds:02d}"
 	
-def parse_full_date(date_str:str):
+def parse_full_date(date_str:str) -> datetime.date:
 	# date_str: in format YYYY-MM-DDT....
 	try:
 		date_part = date_str.split('T')[0] if date_str else None
-		return datetime.strptime(date_part, '%Y-%m-%d') if date_part else None
+		date_as_date = datetime.strptime(date_part, '%Y-%m-%d').date() if date_part else None
+		return date_as_date 
 	except Exception as e:
 		print(f"Error while parsing date '{date_str}': {e}")
 		return None
 		
-def parse_datestring(date_str:str):
+def parse_datestring(date_str:str) -> datetime.date:
 	# date_str: in format DD.MM.YYYY
 	if date_str is None:
 		return None
 	datesplit = date_str.split('.')
-	return datetime(int(datesplit[2]), int(datesplit[1]), int(datesplit[0]))
+	return date(int(datesplit[2]), int(datesplit[1]), int(datesplit[0]))

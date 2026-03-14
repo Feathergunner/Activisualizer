@@ -69,7 +69,6 @@ def visualize_activity_data(datadir:str, min_date:str="01.01.2000", activitytype
 		pace = (data.get('totaltime')/60)/(data.get('totaldist')/1000)
 		# speed in km/h:
 		speed = (data.get('totaldist')/1000)/(data.get('totaltime')/(60*60))
-		print ("dist:", activitydist, "time:", activitytime, "pace:", pace, "speed:", speed)
 		if activitytype == "running":
 			x_vals.append(pace)
 		else:
@@ -83,8 +82,6 @@ def visualize_activity_data(datadir:str, min_date:str="01.01.2000", activitytype
 			y_vals_hl.append(data.get('avgHR'))
 			sizes_hl.append(data.get('totaldist') * MARKERSCALE_DIST+1)
 			
-	print (x_vals)
-	print (y_vals)
 		
 	print ("Total distance: "+str(int(totaldist))+"m")
 	t_hours = int(totaltime//(3600))
