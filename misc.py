@@ -4,9 +4,13 @@
 import os
 import json
 from datetime import datetime, date
+import math
 
+
+MAP_DIM_TILE = 256
+MAP_DEFAULT_ZOOM = 14
 # metrics of interest that is kept after parsing:
-METRICS_OF_INTEREST = ["sumDistance", "sumDuration", "directElevation", "directHeartRate"]
+METRICS_OF_INTEREST = ["sumDistance", "sumDuration", "directElevation", "directHeartRate", "directLongitude", "directLatitude"]
 
 def load_json(filepath:str):
 	with open(filepath, "r", encoding="utf-8") as f:
@@ -62,3 +66,18 @@ def parse_datestring(date_str:str) -> datetime.date:
 		return None
 	datesplit = date_str.split('.')
 	return date(int(datesplit[2]), int(datesplit[1]), int(datesplit[0]))
+
+def latlong_to_merccoords(lat:float, lon:float, zoom:int=MAP_DEFAULT_ZOOM):
+	'''
+	computes the (x,y)-coordinates from (latitude, longitude) data, to fetch map tiles from mercerator projected online map service
+
+	maths from https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Derivation_of_tile_names
+	'''
+	x = int((lon+180)/360 * 2**zoom)
+	y = int((1-(math.log(math.tan(lat*(math.pi/180))+(1/(math.cos(lat*(math.pi/180))))))/math.pi)*2**(zoom-1))
+	return (x,y)
+
+def tile_xy_to_latlon(x:int, y:int, zoom:int=MAP_DEFAULT_ZOOM):
+	lon = (x/(2**zoom))*360-180
+	lat = math.atan(math.sinh(math.pi-(y/2**zoom)*2*math.pi))*(180/math.pi)
+	return (lat, lon)

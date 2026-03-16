@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-import string
 
 import os
-import math
 import urllib.request
 from PIL import Image
 
-from misc import ensure_dir_exists
+from misc import ensure_dir_exists, latlong_to_merccoords, MAP_DIM_TILE, MAP_DEFAULT_ZOOM
 
-DEFAULT_ZOOM = 14
 EXAMPLE_LATITUDE = 52.5
 EXAMPLE_LONGITUDE = 13.4
 MAPSERVER = "https://a.tile.openstreetmap.org/"
@@ -18,18 +16,6 @@ def get_maptile_filename(x:int,y:int,z:int)-> str:
 	tiles_dir = os.path.join(MAP_DIR, "tiles")
 	ensure_dir_exists(tiles_dir)
 	return os.path.join(tiles_dir, str(z)+"-"+str(x)+"-"+str(y)+".png")
-
-
-def latlong_to_merccoords(lat:float, lon:float, zoom:int=DEFAULT_ZOOM):
-	'''
-	computes the (x,y)-coordinates from (latitude, longitude) data, to fetch map tiles from mercerator projected online map service
-
-	maths from https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Derivation_of_tile_names
-	'''
-
-	x = int((lon+180)/360 * 2**zoom)
-	y = int((1-(math.log(math.tan(lat*(math.pi/180))+(1/(math.cos(lat*(math.pi/180))))))/math.pi)*2**(zoom-1))
-	return (x,y)
 
 def download_maptiles(maptile_coords, zoom:int):
 	'''
@@ -46,7 +32,7 @@ def download_maptiles(maptile_coords, zoom:int):
 		webopener.addheader('User-Agent', 'Magic Browser')
 		filename, headers = webopener.retrieve(fullurl, filename)
 
-def construct_maptile_coords(lat_min:int, lat_max:int, lon_min:int, lon_max:int, zoom:int=DEFAULT_ZOOM, add_border:bool=True):
+def construct_maptile_coords(lat_min:int, lat_max:int, lon_min:int, lon_max:int, zoom:int=MAP_DEFAULT_ZOOM, add_border:bool=True):
 	'''
 	lat_min: minimum latitude from a set of coordinates
 	lat_max: maximum latitude from a set of coordinates
@@ -79,7 +65,7 @@ def construct_maptile_coords(lat_min:int, lat_max:int, lon_min:int, lon_max:int,
 			maptile_coords.append((ix, iy))
 	return maptile_coords
 
-def combine_maptiles(maptile_coords, zoom:int=DEFAULT_ZOOM, filename:str="map", dim:int=256):
+def combine_maptiles(maptile_coords, zoom:int=MAP_DEFAULT_ZOOM, filename:str="map", dim:int=MAP_DIM_TILE):
 	'''
 	maptile_coords: a list of (x:int, y:int)-tuples, as constructed by construct_maptile_coords
 	zoom: required for getting filenames of tiles

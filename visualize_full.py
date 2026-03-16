@@ -8,8 +8,8 @@ from matplotlib.lines import Line2D
 import numpy as np
 from datetime import datetime, timedelta
 
-from misc import load_json, pace_to_float, float_to_pace_str, parse_full_date, parse_datestring, METRICS_OF_INTEREST
-from parsing import get_metric_indices, extract_metrics, extract_data
+from misc import load_json, parse_full_date
+from parsing import extract_data
 
 
 def generate_elevation_profile_single(filename):
@@ -82,16 +82,16 @@ def plot_elevation_profiles(filenames, type:str, cumulative:bool=False):
 	plt.tight_layout()
 	plt.show()
 
-	
 def test(type="running"):
-	dir_downloaded = "full_activity_data/"+type
+	dir_downloaded = os.path.join("full_activity_data",type)
 	input_files = [
-			"full_activity_data/"+type+"/"+f for f in os.listdir(dir_downloaded)
+			os.path.join("full_activity_data",type,f) for f in os.listdir(dir_downloaded)
 			if f.lower().endswith(".json")
 		]
 	#print (input_files)
 	plot_elevation_profiles(input_files, type, True)
+	#plot_elevation_profiles(input_files, type, False)
 
 if __name__ == "__main__":
-	test("cycling")
+	test()
 	
