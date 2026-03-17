@@ -7,11 +7,11 @@ import matplotlib as mpl
 from matplotlib.lines import Line2D
 from PIL import Image
 
-from misc import load_json, latlong_to_merccoords, tile_xy_to_latlon, MAP_DIM_TILE, MAP_DEFAULT_ZOOM
+from misc import load_json
 from parsing import extract_data
-from download_maptiles import construct_maptile_coords, download_maptiles, combine_maptiles
+import OSMMapDownloader as osmmd
 
-def get_gps_stats(data):
+def get_gps_stats(data, zoom:int=osmmd.MAP_DEFAULT_ZOOM):
 	'''
 	data: dictionary of activity-data as constructed by misc.extract_data
 
@@ -43,10 +43,10 @@ def get_gps_stats(data):
 				min_lon = lon
 			if lon > max_lon:
 				max_lon = lon
-	min_x, min_y = latlong_to_merccoords(min_lat, min_lon)
-	max_x, max_y = latlong_to_merccoords(max_lat, max_lon)
-	(min_lat_tiles, min_lon_tiles) = tile_xy_to_latlon(min_x, min_y)
-	(max_lat_tiles, max_lon_tiles) = tile_xy_to_latlon(max_x, max_y)
+	min_x, min_y = osmmd.latlong_to_merccoords(min_lat, min_lon,zoom)
+	max_x, max_y = osmmd.latlong_to_merccoords(max_lat, max_lon,zoom)
+	(min_lat_tiles, min_lon_tiles) = osmmd.tile_xy_to_latlon(min_x, min_y,zoom)
+	(max_lat_tiles, max_lon_tiles) = osmmd.tile_xy_to_latlon(max_x, max_y,zoom)
 	lat_range = max_lat_tiles-min_lat_tiles
 	lon_range = max_lon_tiles-min_lon_tiles
 
@@ -86,11 +86,11 @@ def get_route_xy_coords(data, gps_stats):
 			relx = (datapoint["directLongitude"]-gps_stats["lon_mintile"])/gps_stats["lon_tile_range"]
 			rely = 1-(datapoint["directLatitude"]-gps_stats["lat_mintile"])/gps_stats["lat_tile_range"]
 			# compute absolute pixel distances, consider 1-tile-border:
-			px = relx*MAP_DIM_TILE*(gps_stats["x_range"]-1)
-			py = rely*(MAP_DIM_TILE*(gps_stats["y_range"]-1))
+			px = relx*osmmd.MAP_DIM_TILE*(gps_stats["x_range"]-1)
+			py = rely*(osmmd.MAP_DIM_TILE*(gps_stats["y_range"]-1))
 			# add 1-tile-border offset:
-			px += MAP_DIM_TILE
-			py += MAP_DIM_TILE
+			px += osmmd.MAP_DIM_TILE
+			py += osmmd.MAP_DIM_TILE
 			# add to list of coordinates:
 			xs.append(px)
 			ys.append(py)
@@ -107,13 +107,11 @@ def plot_route_on_map(filename):
 	gps_stats = get_gps_stats(extracted_data)
 
 	# get map:
-	maptile_coords = construct_maptile_coords(gps_stats["lat_min"], gps_stats["lat_max"], gps_stats["lon_min"], gps_stats["lon_max"])
-	download_maptiles(maptile_coords, zoom=MAP_DEFAULT_ZOOM)
-	mapfilename = "map_"+str(jsondata.get("activityId"))
-	combine_maptiles(maptile_coords, filename=mapfilename)
+	mapdownloader = osmmd.OSMMapDownloader(gps_stats["lat_min"], gps_stats["lat_max"], gps_stats["lon_min"], gps_stats["lon_max"], add_border=True)
+	mapdownloader.get_map()
 
 	# plot map:
-	mapimage = Image.open(os.path.join("maps", mapfilename+"_"+str(MAP_DEFAULT_ZOOM)+".png"))
+	mapimage = Image.open(mapdownloader.filepath)
 	plt.imshow(mapimage)
 
 	# plot route:
@@ -121,9 +119,11 @@ def plot_route_on_map(filename):
 	plt.plot(xs, ys)
 	plt.show()
 
-def plot_multiple_routes(activity_ids:list, activity_type:str="running"):
+def plot_multiple_routes(activity_ids:list, activity_type:str="running", filename:str=None, zoom:int=osmmd.MAP_DEFAULT_ZOOM):
 	'''
 	plots multiple routes on a map.
+
+	If filename is not None, the resulting plotted map will be saved under specified filename
 	'''	
 	gps_stats = {}
 	extracted_data = {}
@@ -143,10 +143,10 @@ def plot_multiple_routes(activity_ids:list, activity_type:str="running"):
 	global_gps_stats["lon_maxtile"] = max(gps_stats[aid]["lon_maxtile"] for aid in gps_stats)
 
 
-	min_x, min_y = latlong_to_merccoords(global_gps_stats["lat_min"], global_gps_stats["lon_min"])
-	max_x, max_y = latlong_to_merccoords(global_gps_stats["lat_max"], global_gps_stats["lon_max"])
-	(global_gps_stats["lat_mintile"], global_gps_stats["lon_mintile"]) = tile_xy_to_latlon(min_x, min_y)
-	(global_gps_stats["lat_maxtile"], global_gps_stats["lon_maxtile"]) = tile_xy_to_latlon(max_x, max_y)
+	min_x, min_y = osmmd.latlong_to_merccoords(global_gps_stats["lat_min"], global_gps_stats["lon_min"],zoom)
+	max_x, max_y = osmmd.latlong_to_merccoords(global_gps_stats["lat_max"], global_gps_stats["lon_max"],zoom)
+	(global_gps_stats["lat_mintile"], global_gps_stats["lon_mintile"]) = osmmd.tile_xy_to_latlon(min_x, min_y,zoom)
+	(global_gps_stats["lat_maxtile"], global_gps_stats["lon_maxtile"]) = osmmd.tile_xy_to_latlon(max_x, max_y,zoom)
 	global_gps_stats["lat_tile_range"] = global_gps_stats["lat_maxtile"]-global_gps_stats["lat_mintile"]
 	global_gps_stats["lon_tile_range"] = global_gps_stats["lon_maxtile"]-global_gps_stats["lon_mintile"]
 
@@ -157,13 +157,11 @@ def plot_multiple_routes(activity_ids:list, activity_type:str="running"):
 	#	print (key, ":", [gps_stats[aid][key] for aid in gps_stats], " -- ", global_gps_stats[key])
 
 	# get map:
-	maptile_coords = construct_maptile_coords(global_gps_stats["lat_min"], global_gps_stats["lat_max"], global_gps_stats["lon_min"], global_gps_stats["lon_max"])
-	download_maptiles(maptile_coords, zoom=MAP_DEFAULT_ZOOM)
-	mapfilename = "map_all_"+activity_type
-	combine_maptiles(maptile_coords, filename=mapfilename)
+	mapdownloader = osmmd.OSMMapDownloader(global_gps_stats["lat_min"], global_gps_stats["lat_max"], global_gps_stats["lon_min"], global_gps_stats["lon_max"], add_border=True)
+	mapdownloader.get_map()
 
 	# plot map:
-	mapimage = Image.open(os.path.join("maps", mapfilename+"_"+str(MAP_DEFAULT_ZOOM)+".png"))
+	mapimage = Image.open(mapdownloader.filepath)
 	plt.imshow(mapimage)
 
 	# plot routes:
@@ -198,10 +196,6 @@ def plot_all_routes_in_area(lat:float, lon:float, delta:float=0.05, activity_typ
 
 			act_lat = jsondata["summaryDTO"]["startLatitude"]
 			act_lon = jsondata["summaryDTO"]["startLongitude"]
-			#act_lat, act_lon = None, None
-			#while act_lat is None or act_lon is None:
-			#	act_lat = data[0]["directLatitude"]
-			#	act_lon = data[0]["directLongitude"]
 			if act_lat >= lat-delta and act_lat <= lat+delta and act_lon >= lon-delta and act_lon <= lon+delta:
 				activities_to_plot.append(jsondata["activityId"])
 				print ("  ... added!")
