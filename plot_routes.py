@@ -119,11 +119,11 @@ def plot_route_on_map(filename):
 	plt.plot(xs, ys)
 	plt.show()
 
-def plot_multiple_routes(activity_ids:list, activity_type:str="running", filename:str=None, zoom:int=osmmd.MAP_DEFAULT_ZOOM):
+def plot_multiple_routes(activity_ids:list, activity_type:str="running", result_filename:str=None, zoom:int=osmmd.MAP_DEFAULT_ZOOM):
 	'''
 	plots multiple routes on a map.
 
-	If filename is not None, the resulting plotted map will be saved under specified filename
+	If result_filename is not None, the resulting plotted map will be saved under specified filename
 	'''	
 	gps_stats = {}
 	extracted_data = {}
@@ -159,9 +159,16 @@ def plot_multiple_routes(activity_ids:list, activity_type:str="running", filenam
 	# get map:
 	mapdownloader = osmmd.OSMMapDownloader(global_gps_stats["lat_min"], global_gps_stats["lat_max"], global_gps_stats["lon_min"], global_gps_stats["lon_max"], add_border=True)
 	mapdownloader.get_map()
+	mapimage = Image.open(mapdownloader.filepath)
+
+	# set up figure:
+	dpi = 200
+	im_x, im_y = mapimage.size
+	width_inches = im_x / (dpi)
+	height_inches = im_y / (dpi)
+	plt.figure(figsize=(width_inches, height_inches))
 
 	# plot map:
-	mapimage = Image.open(mapdownloader.filepath)
 	plt.imshow(mapimage)
 
 	# plot routes:
@@ -170,9 +177,18 @@ def plot_multiple_routes(activity_ids:list, activity_type:str="running", filenam
 		plt.plot(xs, ys, c='red')
 
 	plt.tight_layout()
-	plt.show()
+	plt.axis('off')
 
-def plot_all_routes_in_area(lat:float, lon:float, delta:float=0.05, activity_type:str="running"):
+	if result_filename is None:
+		plt.show()
+	else:
+		# ensure filename ends with ".png"
+		if not result_filename.endswith(".png"):
+			result_filename = result_filename.split(".")[0]+".png"
+		# save plot
+		plt.savefig(result_filename, bbox_inches='tight', pad_inches=0, dpi=dpi)
+
+def plot_all_routes_in_area(lat:float, lon:float, delta:float=0.05, activity_type:str="running", result_filename:str=None):
 	'''
 	lat: latitude of start position
 	lon: longitude of start position
@@ -181,6 +197,8 @@ def plot_all_routes_in_area(lat:float, lon:float, delta:float=0.05, activity_typ
 	plots all routes that start within 
 		latitude: [lat - delta, lat + delta]
 		longitude: [lon - delta, lon + delta]
+
+	If result_filename is not None, the resulting plotted map will be saved under specified filename
 	'''
 
 	activities_to_plot = []
@@ -203,13 +221,13 @@ def plot_all_routes_in_area(lat:float, lon:float, delta:float=0.05, activity_typ
 				print ("  ... to far away")
 
 	print ("Found "+str(len(activities_to_plot))+" activities to plot.")
-	plot_multiple_routes(activities_to_plot, activity_type)
+	plot_multiple_routes(activities_to_plot, activity_type, result_filename=result_filename)
 
 
 def test(type="running"):
-	plot_all_routes_in_area(50.9, 11.6)
+	plot_all_routes_in_area(50.9, 11.6, activity_type=type, result_filename="test_"+type)
 	#plot_all_routes_in_area(53.2, 8.8)
 
 if __name__ == "__main__":
-	test()
+	test("running")
 	
