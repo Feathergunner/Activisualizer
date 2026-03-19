@@ -31,15 +31,21 @@ lp_axis_param = {
 }
 
 class UserHandler():
+	'''
+	Organizes settings, so the user can reuse them for multiple plots.
+	Also ensures (mostly) correct inputs to avoid critical errors (i hope).
+	'''
 	def __init__(self):
-		# level 0:
+		# three levels of general settings:
+		# level 0 (required for every action, including data download):
 		self.activity_type = "running"
-		# level 1:
+		# level 1 (required for every plot):
 		self.min_date = None
 		self.max_date = None
-		# level 2:
+		# level 2 (required only for plots of aggregated split-data:
 		self.splitlength = 1000
 
+		# plot-specific settings:
 		# scatterplotsettings:
 		self.sc_axis_keys = {
 			"x" : "pace",
@@ -63,8 +69,8 @@ class UserHandler():
 		self.zoom_level = 14
 		self.map_file_name = ""
 
-
 	def _update_type(self, new_activity_type:str) -> bool:
+		# update the activity type
 		if not new_activity_type in VALID_ACTIVITY_TYPES:
 			print ("Unknown activity_type: "+new_activity_type+". Has to be one of: "+VALID_ACTIVITY_TYPES+".")
 			return False
@@ -72,12 +78,15 @@ class UserHandler():
 		return True
 
 	def _reset_min_date(self):
+		# reset the minimum date
 		self.min_date = None
 
 	def _reset_max_date(self):
+		# reset the maximum data
 		self.max_date = None
 
 	def _update_min_date(self, new_min_date:str) -> bool:
+		# set a minimum date
 		if not check_datestr_format(new_min_date):
 			print ("Date format not recognized: "+new_min_date+". Has to be in format YYYY-MM-DD.")
 			return False
@@ -85,6 +94,7 @@ class UserHandler():
 		return True
 
 	def _update_max_date(self, new_max_date:str) -> bool:
+		# set a maximum date
 		if not check_datestr_format(new_max_date):
 			print ("Date format not recognized: "+new_max_date+". Has to be in format YYYY-MM-DD.")
 			return False
@@ -92,12 +102,16 @@ class UserHandler():
 		return True
 
 	def _update_splitlength(self, new_splitlength:int) -> bool:
+		# set a spitlength
 		if not new_splitlength.isdigit() or new_splitlength == "0":
 			print ("Entered value is not a valid splitlength: "+new_splitlength+". Has to be positive integer.")
 			return False
 		self.splitlength = int(new_splitlength)
 		return True
 
+	#################################################
+	# UI-functions to display and change settings:
+	#################################################
 	def show_scatterplot_settings(self):
 		while True:
 			print ("Set up scatterplot of aggregated spit data:")
@@ -303,11 +317,11 @@ class UserHandler():
 			}
 			userchoice = menu(options)
 			if userchoice == "y":
-				self.change_settings(level)
+				self._change_settings(level)
 			if userchoice == "n":
 				return
 
-	def change_settings(self, level=0):
+	def _change_settings(self, level=0):
 		while True:
 			print ("== Change Activity Settings ==")
 			options = {
@@ -368,6 +382,7 @@ class UserHandler():
 			if userchoice == "q":
 				return
 
+# Helper UI function to display a menu and parse the user's choice
 def menu(options):
 	# check if options are valid:
 	for key in options.keys():
@@ -421,6 +436,7 @@ def routeplot(uh):
 if __name__ == '__main__':
 	uh = UserHandler()
 	while True:
+		# Main Menu:
 		print ("\n=== Activity Visualizer Main Menu ===\n")
 		mainoptions = {
 			"d" : "Download data from garmin",
