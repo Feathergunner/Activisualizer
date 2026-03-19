@@ -7,12 +7,12 @@ So far works only with a Garmin account.
 
 ## Contents
 ### Main Plotting Functionalities:
-* `ActivityPlotter.py`: generates 2D-lineplots from activity data, for example an elevation profile (see above), pace profile or heartrate profile.
+* `ActivityPlotter.py`: generates 2D-lineplots from activity data, for example an elevation profile or cumulative elevation gain (see example images), pace profile or heartrate profile.
 ![Visualizing elevation profile of multiple runs](example_totalele.png "Elevation Profile")
 ![Visualizing cumulative elevation gain of multiple runs](example_cumele.png "Elevation Gain")
-* `SplitPlotter.py`: generates scatterplots where each dot represents a split (of adjustable length). For example pace vs. heartrate, with elevation visualized by dot size.
+* `SplitPlotter.py`: generates scatterplots where each dot represents a split (of adjustable length). For example pace vs. heartrate, with elevation visualized by dot size (see example image).
 ![Visualizing pace vs. heartrate](example_running.png "Pace vs. Heartrate")
-* `RoutePlotter.py`: plots the gpx-data from activities on a map.
+* `RoutePlotter.py`: plots the gpx-data from activities on a map (see example image).
 ![Mapping activity gpx data](example_map_running.png "Routes")
 ### Helper Functionalities:
 * `DataHandler.py`: Handles loading the activity data from json-files.
