@@ -5,12 +5,19 @@ import os
 import json
 from datetime import datetime, date
 import math
+import re
 
 
 MAP_DIM_TILE = 256
 MAP_DEFAULT_ZOOM = 14
-# metrics of interest that is kept after parsing:
-METRICS_OF_INTEREST = ["sumDistance", "sumDuration", "directElevation", "directHeartRate", "directLongitude", "directLatitude"]
+
+date_format = r"\d\d\d\d-\d\d-\d\d"
+date_regex = re.compile(date_format)
+def check_datestr_format(datestr:str) -> bool:
+	# check if dates are in isoformat (we don't care if dates are actually correct)
+	if datestr is not None and date_regex.match(datestr) is None:
+		return False
+	return True
 
 def load_json(filepath:str):
 	with open(filepath, "r", encoding="utf-8") as f:
@@ -32,10 +39,9 @@ def display_json(title:str, jsondata):
 def ensure_dir_exists(directory:str):
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-		
 
 # Helper function to transform pace time from "m:ss"-format to float
-def pace_to_float(pace_str:str):
+def pace_to_float(pace_str:str) -> float:
     try:
         minutes, seconds = map(int, pace_str.strip().split(':'))
         return minutes + seconds / 60
@@ -44,12 +50,22 @@ def pace_to_float(pace_str:str):
         return None
 
 # Helper function to transform time in minutes from float to "m:ss"-String
-def float_to_pace_str(pace_float:float):
+def float_to_pace_str(pace_float:float) -> str:
     total_seconds = int(round(pace_float * 60))
     minutes = total_seconds // 60
     seconds = total_seconds % 60
     return f"{minutes}:{seconds:02d}"
 	
+def format_time(seconds:int) -> str:
+	'''
+	formats an int of time in seconds into a string of min:sec
+	'''
+	if seconds <= 0 or seconds is None:
+		return None
+	minutes = int(seconds // 60)
+	secs = int(seconds % 60)
+	return f"{minutes}:{secs:02}"
+
 def parse_full_date(date_str:str) -> datetime.date:
 	# date_str: in format YYYY-MM-DDT....
 	try:
@@ -60,12 +76,14 @@ def parse_full_date(date_str:str) -> datetime.date:
 		print(f"Error while parsing date '{date_str}': {e}")
 		return None
 		
-def parse_datestring(date_str:str) -> datetime.date:
-	# date_str: in format DD.MM.YYYY
+def parse_isodatestring(date_str:str) -> datetime.date:
+	'''
+	Parses a string in format YYYY-MM-DD to the corresponding datetime.date-object
+	'''
 	if date_str is None:
 		return None
-	datesplit = date_str.split('.')
-	return date(int(datesplit[2]), int(datesplit[1]), int(datesplit[0]))
+	datesplit = date_str.split('-')
+	return date(int(datesplit[0]), int(datesplit[1]), int(datesplit[2]))
 
 def latlong_to_merccoords(lat:float, lon:float, zoom:int=MAP_DEFAULT_ZOOM):
 	'''
@@ -81,3 +99,17 @@ def tile_xy_to_latlon(x:int, y:int, zoom:int=MAP_DEFAULT_ZOOM):
 	lon = (x/(2**zoom))*360-180
 	lat = math.atan(math.sinh(math.pi-(y/2**zoom)*2*math.pi))*(180/math.pi)
 	return (lat, lon)
+
+def check_daterange(datestring:datetime.date, min_date:datetime.date, max_date:datetime.date) -> bool:
+	'''
+	datestring: specifies a date in the format DD.MM.YYYY
+	Checks if the date specified by datestring is within [self.min_date, self.max_date]
+	If one of min_date, max_date is None, interval is considered to be open (in that direction)
+	'''
+	if min_date is not None and min_date > datestring:
+		# datestring before min_date
+		return False
+	if max_date is not None and max_date < datestring:
+		# datestring after max_date
+		return False
+	return True
