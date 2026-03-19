@@ -213,6 +213,5 @@ class RoutePlotter():
 		return (xs, ys)
 
 if __name__ == '__main__':
-	#plot_all_routes_in_area(50.9, 11.6, activity_type=type, result_filename="test_"+type)
 	rp = RoutePlotter()
 	rp.plot_routes_in_area("running", 50.9, 11.6, min_date="2026-01-01", filename="test_RP")

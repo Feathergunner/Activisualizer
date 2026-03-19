@@ -134,5 +134,6 @@ if __name__ == '__main__':
 	type = "running"
 
 	ap = ActivityPlotter()
+	# axis-keys have to be from:
 	# "sumDistance", "sumDuration", "directElevation", "directHeartRate", "directLongitude", "directLatitude", cumulativeElevation, deltaElevation
 	ap.plot_activities(type, mind, maxd, axis_x_key="sumDistance", axis_y_key="cumulativeElevation")

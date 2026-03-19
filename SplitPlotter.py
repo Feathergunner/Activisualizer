@@ -205,11 +205,11 @@ class SplitPlotter():
 		return str(int(pace//60))+":"+str(int(pace%60))
 
 if __name__ == '__main__':
-	#ap = ActivityParser("running", min_date="01.01.2026", max_date="01.02.2026")
 	mind = "2024-01-01"
 	maxd = None#"2026-03-01"
 	sl = 5000
 
 	sp = SplitPlotter(splitlength=sl, min_date=mind, max_date=maxd)
-	#"elapsed_time", "pace", "elevation_gain", "avg_heartrate", "previous_distance", "previous_elevation", "date"
+	# axis-keys have to be from:
+	# "elapsed_time", "pace", "elevation_gain", "avg_heartrate", "previous_distance", "previous_elevation", "date"
 	sp.plot_scatter(axis_x_key="date", axis_y_key="avg_heartrate", axis_color_key="pace", axis_size_key="elevation_gain")

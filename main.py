@@ -67,7 +67,7 @@ class UserHandler():
 		self.home_longitude = 11.6
 		# default zoom level
 		self.zoom_level = 14
-		self.map_file_name = ""
+		self.map_file_name = "map"
 
 	def _update_type(self, new_activity_type:str) -> bool:
 		# update the activity type
