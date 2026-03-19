@@ -118,7 +118,7 @@ class GarminDataDownloader():
 					# store base data and detailed data in single json-file:
 					data = {**data_base, **data_detailed}
 					save_json(data, filepath)
-		print ("Downloaded "+str(dl_counter)+ "activities. Data are saved at: "+self.download_dir)+"."
+		print ("Downloaded "+str(dl_counter)+ "activities. Data are saved at: "+self.download_dir+".")
 
 if __name__ == '__main__':
 	gdd = GarminDataDownloader()
