@@ -26,7 +26,9 @@ def ensure_dir_exists(directory:str):
 
 def latlong_to_merccoords(lat:float, lon:float, zoom:int):
 	'''
-	computes the (x,y)-coordinates from (latitude, longitude) data, to fetch map tiles from mercerator projected online map service
+	computes the (x,y)-coordinates of the maptile that covers a (latitude, longitude)-coordinate.
+	longitude corresponds to x, and latitude corresponds to y
+	but note that y-coordinates are inverse to latitude: with increasing latitude, y decreases.
 
 	maths from https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Derivation_of_tile_names
 	'''

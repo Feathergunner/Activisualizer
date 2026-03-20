@@ -9,12 +9,13 @@ from DataHandler import DataHandler
 from misc import check_datestr_format
 from org import METRICS_OF_INTEREST, VALID_ACTIVITY_TYPES
 
+
 class RoutePlotter():
 	'''
 	Class that handles plotting multiple routes from activities onto a map.
 	'''
-	def __init__(self):
-		pass
+	def __init__(self, add_border:bool=True):
+		self.add_border = add_border
 
 	def plot_routes_in_area(self, activity_type:str, lat:float, lon:float, delta:float=0.05, min_date:str=None, max_date:str=None, zoom:int=osmmd.MAP_DEFAULT_ZOOM, filename:str=""):
 		'''
@@ -50,7 +51,6 @@ class RoutePlotter():
 			longitude_max=lon+delta,
 			require_fulldata=True)
 
-
 		if len(activities) == 0:
 			# no data, abort
 			return
@@ -76,23 +76,30 @@ class RoutePlotter():
 		global_gps_stats["lat_max"] = max(gps_stats[aid]["lat_max"] for aid in gps_stats)
 		global_gps_stats["lon_mintile"] = min(gps_stats[aid]["lon_mintile"] for aid in gps_stats)
 		global_gps_stats["lon_maxtile"] = max(gps_stats[aid]["lon_maxtile"] for aid in gps_stats)
-	
-	
+		
+		# compute the remaining statistics:
 		min_x, min_y = osmmd.latlong_to_merccoords(global_gps_stats["lat_min"], global_gps_stats["lon_min"],zoom)
 		max_x, max_y = osmmd.latlong_to_merccoords(global_gps_stats["lat_max"], global_gps_stats["lon_max"],zoom)
+		max_x += 1
+		min_y += 1
+		if self.add_border:
+			min_x -= 1
+			max_x += 1
+			min_y += 1
+			max_y -= 1
 		(global_gps_stats["lat_mintile"], global_gps_stats["lon_mintile"]) = osmmd.tile_xy_to_latlon(min_x, min_y,zoom)
 		(global_gps_stats["lat_maxtile"], global_gps_stats["lon_maxtile"]) = osmmd.tile_xy_to_latlon(max_x, max_y,zoom)
 		global_gps_stats["lat_tile_range"] = global_gps_stats["lat_maxtile"]-global_gps_stats["lat_mintile"]
 		global_gps_stats["lon_tile_range"] = global_gps_stats["lon_maxtile"]-global_gps_stats["lon_mintile"]
 	
-		global_gps_stats["x_range"] = max_x-min_x+1
-		global_gps_stats["y_range"] = min_y-max_y+1
+		global_gps_stats["x_range"] = max_x-min_x
+		global_gps_stats["y_range"] = min_y-max_y
 	
 		#for key in global_gps_stats:
 		#	print (key, ":", [gps_stats[aid][key] for aid in gps_stats], " -- ", global_gps_stats[key])
-	
+
 		# get map:
-		mapdownloader = osmmd.OSMMapDownloader(global_gps_stats["lat_min"], global_gps_stats["lat_max"], global_gps_stats["lon_min"], global_gps_stats["lon_max"], zoom=zoom, add_border=True)
+		mapdownloader = osmmd.OSMMapDownloader(global_gps_stats["lat_min"], global_gps_stats["lat_max"], global_gps_stats["lon_min"], global_gps_stats["lon_max"], zoom=zoom, add_border=self.add_border)
 		mapdownloader.get_map()
 		mapimage = Image.open(mapdownloader.filepath)
 	
@@ -159,15 +166,27 @@ class RoutePlotter():
 					min_lon = lon
 				if lon > max_lon:
 					max_lon = lon
+		# get x/y-coordinates of tile that covers minimum lat/lon-coordinates
+		# note that y is related inverse to lateitude, 
+		# therefore max_y <= min_y
 		min_x, min_y = osmmd.latlong_to_merccoords(min_lat, min_lon,zoom)
 		max_x, max_y = osmmd.latlong_to_merccoords(max_lat, max_lon,zoom)
-		(min_lat_tiles, min_lon_tiles) = osmmd.tile_xy_to_latlon(min_x, min_y,zoom)
-		(max_lat_tiles, max_lon_tiles) = osmmd.tile_xy_to_latlon(max_x, max_y,zoom)
+		# adjust so that tile coordinates refer to MAP BOUNDARIES
+		max_x += 1
+		min_y += 1
+		if self.add_border:
+			# add one tile in each direction:
+			min_x -= 1
+			max_x += 1
+			min_y += 1
+			max_y -= 1
+		(min_lat_tiles, min_lon_tiles) = osmmd.tile_xy_to_latlon(min_x, min_y, zoom)
+		(max_lat_tiles, max_lon_tiles) = osmmd.tile_xy_to_latlon(max_x, max_y, zoom)
 		lat_range = max_lat_tiles-min_lat_tiles
 		lon_range = max_lon_tiles-min_lon_tiles
 	
-		x_range = max_x-min_x+1
-		y_range = min_y-max_y+1
+		x_range = max_x-min_x
+		y_range = min_y-max_y
 	
 		return {
 			"lon_min" : min_lon,
@@ -198,20 +217,20 @@ class RoutePlotter():
 			lon = datapoint["directLongitude"]
 			if lat is not None and lon is not None:
 				# compute pixel offsets:
-				# compute relative distance from (0,0) on image:
+				# compute distance in full tiles from (0,0) on image:
 				relx = (datapoint["directLongitude"]-gps_stats["lon_mintile"])/gps_stats["lon_tile_range"]
-				rely = 1-(datapoint["directLatitude"]-gps_stats["lat_mintile"])/gps_stats["lat_tile_range"]
+				rely = 1-((datapoint["directLatitude"]-gps_stats["lat_mintile"])/gps_stats["lat_tile_range"])
 				# compute absolute pixel distances, consider 1-tile-border:
-				px = relx*osmmd.MAP_DIM_TILE*(gps_stats["x_range"]-1)
-				py = rely*(osmmd.MAP_DIM_TILE*(gps_stats["y_range"]-1))
-				# add 1-tile-border offset:
-				px += osmmd.MAP_DIM_TILE
-				py += osmmd.MAP_DIM_TILE
+				px = relx*(osmmd.MAP_DIM_TILE*(gps_stats["x_range"]))
+				py = rely*(osmmd.MAP_DIM_TILE*(gps_stats["y_range"]))
 				# add to list of coordinates:
 				xs.append(px)
 				ys.append(py)
 		return (xs, ys)
 
 if __name__ == '__main__':
-	rp = RoutePlotter()
-	rp.plot_routes_in_area("running", 50.9, 11.6, min_date="2026-01-01", filename="test_RP")
+	min_date = "2026-03-15"
+	max_date = None
+	
+	rp = RoutePlotter(False)
+	rp.plot_routes_in_area("running", 50.9, 11.6, min_date=min_date, max_date=max_date, zoom=14, filename="test_RP")
