@@ -131,6 +131,7 @@ class RoutePlotter():
 			# save plot
 			plt.savefig(result_filename, bbox_inches='tight', pad_inches=0, dpi=dpi)
 			print ("Saved map image with routes in: "+result_filename)
+			plt.close('all')
 
 	def _get_gps_stats(self, activity_data, zoom:int=osmmd.MAP_DEFAULT_ZOOM):
 		'''
