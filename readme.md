@@ -1,9 +1,14 @@
 # Activity Visualizer
 
+**Deprecated, since the Garmin API and the garminconnect package don't work anymore the way it was implemented in this project. 
+Functionalities have been moved to a new project (WIP) that uses data from generic gpx-files instead of garmin-specific activity-jsons**
+
 Some scripts for downloading, parsing and visualizing activity-data from a garmin account.
 To create plots that aggregate data of multiple activities, to visualize training progress.
 
 So far works only with a Garmin account.
+
+
 
 ## Contents
 ### Main Plotting Functionalities:
